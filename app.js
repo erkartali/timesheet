@@ -48,7 +48,14 @@ database.ref().on("child_added", function (snapshot) {
 	newRow.append("<td>" + monthsWorked + "</td>");
 	newRow.append("<td>" + monthlyRate + "</td>");
 	newRow.append("<td>" + totalBilled + "</td>");
+	newRow.append("<td><button class='delete-button'>Delete</button></td>");
 	$("#table-body").append(newRow);
+});
+
+$(".delete-button").on("click", function(event) {
+	event.preventDefault();
+	console.log("hi");
+	// database.ref().child("-M4HM-IQLuqW7ZTZbswv").removeValue();
 });
 
 function getMonthsWorked(startDate) {
