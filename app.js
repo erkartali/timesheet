@@ -53,19 +53,21 @@ database.ref().on("child_added", function (snapshot) {
 });
 
 tableBody.on("click", ".delete-button", function () {
-	rows = rows.filter((e) => e.childKey !== child);
-	database.ref().child(child).remove();
+	childToDelete = $(this).attr("data-key");
+	console.log(childToDelete);
+	rows = rows.filter((e) => e.childKey !== childToDelete);
+	database.ref().child(childToDelete).remove();
 	tableBody.empty();
 	for (row of rows) {
 		displayRow(row);
 	}
-	deleteRow($(this).attr("data-key"));
 });
 
 function displayRow(row) {
 	var newRow = $("<tr>");
 	var deleteButton = $("<button>");
 	deleteButton.attr("class", "delete-button");
+	deleteButton.attr("data-key", row.childKey);
 	deleteButton.text("delete");
 	newRow.append("<td>" + row.employeeCount + "</td>");
 	newRow.append("<td>" + row.name + "</td>");
