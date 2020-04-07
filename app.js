@@ -3,12 +3,15 @@ var config = {
 	authDomain: "coding-bootcamp-c2d63.firebaseapp.com",
 	databaseURL: "https://coding-bootcamp-c2d63.firebaseio.com",
 	projectId: "coding-bootcamp-c2d63",
-	storageBucket: "coding-bootcamp-c2d63.appspot.com"
+	storageBucket: "coding-bootcamp-c2d63.appspot.com",
 };
+
 firebase.initializeApp(config);
 
 var database = firebase.database();
 var employeeCount = 0;
+var tableBody = $("#table-body");
+var rows = [];
 
 $("#submit-button").on("click", function (event) {
 	event.preventDefault();
@@ -19,8 +22,7 @@ $("#submit-button").on("click", function (event) {
 
 	if (getMonthsWorked(startDate) < 0) {
 		alert("Invalid Start Date");
-	}
-	else {
+	} else {
 		database.ref().push({
 			name: name,
 			role: role,
@@ -32,34 +34,52 @@ $("#submit-button").on("click", function (event) {
 
 database.ref().on("child_added", function (snapshot) {
 	employeeCount++;
-	var name = snapshot.val().name;
-	var role = snapshot.val().role;
-	var startDate = snapshot.val().startDate;
-	var monthlyRate = snapshot.val().monthlyRate;
+	var row = {
+		number: employeeCount,
+		name: snapshot.val().name,
+		role: snapshot.val().role,
+		startDate: snapshot.val().startDate,
+		monthlyRate: snapshot.val().monthlyRate,
+		get monthsWorked() {
+			return getMonthsWorked(this.startDate);
+		},
+		get totalBilled() {
+			return this.monthsWorked * this.monthlyRate;
+		},
+		childKey: snapshot.key,
+	};
+	rows.push(row);
+	displayRow(row);
+});
 
-	var monthsWorked = getMonthsWorked(startDate);
-	var totalBilled = monthsWorked * monthlyRate;
+tableBody.on("click", ".delete-button", function () {
+	rows = rows.filter((e) => e.childKey !== child);
+	database.ref().child(child).remove();
+	tableBody.empty();
+	for (row of rows) {
+		displayRow(row);
+	}
+	deleteRow($(this).attr("data-key"));
+});
 
+function displayRow(row) {
 	var newRow = $("<tr>");
-	newRow.append("<td>" + employeeCount + "</td>");
-	newRow.append("<td>" + name + "</td>");
-	newRow.append("<td>" + role + "</td>");
-	newRow.append("<td>" + startDate + "</td>");
-	newRow.append("<td>" + monthsWorked + "</td>");
-	newRow.append("<td>" + monthlyRate + "</td>");
-	newRow.append("<td>" + totalBilled + "</td>");
-	newRow.append("<td><button class='delete-button'>Delete</button></td>");
-	$("#table-body").append(newRow);
-});
-
-$(".delete-button").on("click", function(event) {
-	event.preventDefault();
-	console.log("hi");
-	// database.ref().child("-M4HM-IQLuqW7ZTZbswv").removeValue();
-});
+	var deleteButton = $("<button>");
+	deleteButton.attr("class", "delete-button");
+	deleteButton.text("delete");
+	newRow.append("<td>" + row.employeeCount + "</td>");
+	newRow.append("<td>" + row.name + "</td>");
+	newRow.append("<td>" + row.role + "</td>");
+	newRow.append("<td>" + row.startDate + "</td>");
+	newRow.append("<td>" + row.monthsWorked + "</td>");
+	newRow.append("<td>" + row.monthlyRate + "</td>");
+	newRow.append("<td>" + row.totalBilled + "</td>");
+	newRow.append(deleteButton);
+	tableBody.append(newRow);
+}
 
 function getMonthsWorked(startDate) {
-	var todaysDate = moment().format('YYYY-MM-DD');
-	var date = moment(startDate)
-	return moment(todaysDate).diff(moment(date), 'months');
+	var todaysDate = moment().format("YYYY-MM-DD");
+	var date = moment(startDate);
+	return moment(todaysDate).diff(moment(date), "months");
 }
